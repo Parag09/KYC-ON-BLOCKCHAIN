@@ -10,6 +10,8 @@ import Register from './components/Register';
 import Bank_file_upload from './components/Bank';
 import get_bank_docs from './components/getbankdocs';
 import view_bank_docs from './components/viewbankdocs';
+import give_consent from './components/giveconsent';
+import bank_show_customers from './components/showcustomers'
 
 ReactDOM.render(
     <Router>
@@ -20,6 +22,10 @@ ReactDOM.render(
             <Route path='/bank' component={Bank_file_upload} />
             <Route path='/verifybank' component={get_bank_docs} />
             <Route path='/viewbankdocs/:bankid' component={view_bank_docs} />
+            <Route path='/customer/getbanks' component={give_consent} />
+            <Route path='/banks/showcustomers' component={bank_show_customers} />
+
+
         </div>
     </Router>,
     document.getElementById('root')
