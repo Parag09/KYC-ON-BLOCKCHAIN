@@ -54,11 +54,28 @@ class bank_show_customers extends Component {
 
     }
 
-    onFormSubmit(e){
-        e.preventDefault() // Stop form submit
-        this.fileUpload(this.state.file).then((response)=>{
+    async onFormSubmit(e){
+        var customer_account=e.target.id;
+
+        e.preventDefault()
+         // Stop form submit
+        this.fileUpload(this.state.file).then(async (response)=>{
           console.log(response.data.encryptedkey);
-          
+            const account= await web3.eth.getAccounts();
+            console.log("bank accounts "+account[0]);
+            var document_type="document1";
+            console.log("customer account"+customer_account);
+            await kyc.methods.consentConfirmation(customer_account).send({
+                from:account[0],
+                gas:1000000
+            });
+            console.log("consent confirmed");
+            await kyc.methods.recordData(customer_account,response.data.encryptedkey,document_type,response.data.ipfs)
+            .send({
+                from:account[0],
+                gas:1000000
+            });
+            console.log("data recorded");
 
         })
       }
@@ -91,7 +108,7 @@ class bank_show_customers extends Component {
                                     <tr key={key}>
                                         <td>{item.email}</td>
                                         <td>{item.ethaddress}</td>
-                                       <td><form onSubmit={this.onFormSubmit}>
+                                       <td><form id={item.ethaddress} onSubmit={this.onFormSubmit}>
                                          <input type="file" onChange={this.onChange} />
                                          <button type="submit">Upload</button>
                                         </form></td> 
