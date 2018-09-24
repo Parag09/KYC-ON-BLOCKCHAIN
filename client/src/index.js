@@ -13,6 +13,7 @@ import view_bank_docs from './components/viewbankdocs';
 import give_consent from './components/giveconsent';
 import bank_show_customers from './components/showcustomers';
 import revoke_consent from './components/revokeconsent';
+import show_banks_to_customers from './components/show_banks_to_customers';
 
 ReactDOM.render(
     <Router>
@@ -25,7 +26,8 @@ ReactDOM.render(
             <Route path='/viewbankdocs/:bankid' component={view_bank_docs} />
             <Route path='/customer/getbanks' component={give_consent} />
             <Route path='/banks/showcustomers' component={bank_show_customers} />
-            <Route path='/customer/revokeconsent/:bankid' component={revoke_consent} />
+            <Route path='/customer/showbanks' component={show_banks_to_customers} />
+            <Route path='/customer/revokeconsent' component={revoke_consent} />
 
 
         </div>

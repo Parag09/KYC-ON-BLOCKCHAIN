@@ -16,7 +16,7 @@ class revoke_consent extends Component {
             file:null
         };
        // this.onFormSubmit = this.onFormSubmit.bind(this)
-        this.onChange = this.onChange.bind(this)
+       this.revokeconsent = this.revokeconsent.bind(this)
         // this.getIPFSimage = this.getIPFSimage.bind(this)
         
     }
@@ -32,12 +32,12 @@ class revoke_consent extends Component {
         console.log("token"+localStorage.getItem('jwtToken'));
         axios.get('/get_consented_bank')
         .then((result) => {
-            console.log("result"+result.data.banks[0]._id);
+            console.log(result);
             this.setState({ banks: result.data.banks });
         })
         .catch((error) => {
             console.log("reaced here");
-            console.log(error);
+            //console.log(error);
             if(error.status === 401) {
                 this.setState({ message: 'could not fetch data' });
             }
@@ -50,47 +50,36 @@ class revoke_consent extends Component {
    async revokeconsent(e)
       { 
         var bankid= e.target.id;
-        console.log(bankid);
-        const url = '/get_banks_customer_etherAddress/'+e.target.id;
-    axios.get(url)
-        .then(async (result) => {
-            console.log("bank eth adr"+result.data.ethaddress);
-            var customerid=result.data.custid;
-            console.log("customer id"+result.data.custid);
+        //console.log("bank id"+id);
+        var parent=e.target.parentElement;
+        console.log(parent.id);
+        var ethaddress=parent.id;    
+        const account= await web3.eth.getAccounts();
+        console.log("accounts "+account[0]);
+        await kyc.methods.revokeConsent(ethaddress).send({
+            from:account[0],
+            gas:1000000
+        })
+        .then(result=>{
+            if(result.status==false)
+            {
+                console.log("could not transact. re-try again");
+            }
+            else if(result.status==true)
+            {
+                axios.post('/remove_bank',{
+                    bankid:bankid
             
-            const account= await web3.eth.getAccounts();
-            console.log("accounts "+account[0]);
-            await kyc.methods.consentInitiation(result.data.ethaddress).send({
-                from:account[0],
-                gas:1000000
-            })
-            .then(result=>{
-                if(result.status==false)
-                {
-                    console.log("could not sent consent. re-try again");
-                }
-                else if(result.status==true)
-                {
-                    axios.post('/put_pending_customer',{
-                        bankid:bankid,
-                        custid:customerid
-                    }).then((result)=>{
-                        console.log("successfully added customer to pending customer list of bank");
-                    }).catch(errorr=>{
-                        console.log("could not update db");
-                    });
-                }
-            });
-           })
-        .catch((error) => {
-            console.log("reaced here");
-            console.log(error);
-            if(error.status === 401) {
-                this.setState({ message: 'could not fetch data' });
+                }).then((result)=>{
+                    console.log("removed bank from the bank list of customer");
+                }).catch(errorr=>{
+                    console.log("could not update db");
+                });
             }
         });
-
-      }
+            
+        }
+    
     
     render() {
         return (
@@ -106,7 +95,7 @@ class revoke_consent extends Component {
                                 <tr key={key}>
                                     <td>{item.email}</td>
                                     <td>{item.ethaddress}</td>
-                                    <td><button id={item._id} onClick = {this.revokeconsent}>Revoke consent</button></td>
+                                    <td id={item.ethaddress}><button id={item._id} onClick = {this.revokeconsent}>Revoke consent</button></td>
                                     {/* <td><button ><a href={"/viewbankdocs/"+item._id}>VERIFY</a></button></td> */}
                                 </tr>
                                 

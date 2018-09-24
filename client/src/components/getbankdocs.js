@@ -103,7 +103,16 @@ class get_bank_docs extends Component {
         await kyc.methods.addBank(s).send({
                 from:account[0],
                 gas:1000000
-            });
+            })
+            .then(result=>{
+                if(result.status==false)
+                {
+                    console.log("could not sent consent. re-try again");
+                }
+            })
+            .catch(error=>{
+                console.log("could not transact on etherum");
+            })
 
 
     

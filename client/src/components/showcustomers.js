@@ -55,28 +55,58 @@ class bank_show_customers extends Component {
     }
 
     async onFormSubmit(e){
+        e.preventDefault();
         var customer_account=e.target.id;
-
-        e.preventDefault()
+        var children = e.target.children;
+        var custid =children[0].id;
+        
+        
+        
+        
          // Stop form submit
         this.fileUpload(this.state.file).then(async (response)=>{
           console.log(response.data.encryptedkey);
             const account= await web3.eth.getAccounts();
             console.log("bank accounts "+account[0]);
             var document_type="document1";
+            
             console.log("customer account"+customer_account);
             await kyc.methods.consentConfirmation(customer_account).send({
                 from:account[0],
                 gas:1000000
-            });
-            console.log("consent confirmed");
-            await kyc.methods.recordData(customer_account,response.data.encryptedkey,document_type,response.data.ipfs)
-            .send({
-                from:account[0],
-                gas:1000000
-            });
-            console.log("data recorded");
-
+            })
+            .then(async result=>{
+                if(result.status==false)
+                {
+                    console.log("could not sent consent. re-try again");
+                }
+                else if(result.status==true)
+                {
+                    await kyc.methods.recordData(customer_account,response.data.encryptedkey,document_type,response.data.ipfs)
+                    .send({
+                        from:account[0],
+                        gas:1000000
+                    })
+                    .then(async result2=>{
+                        console.log("data recorded");
+                        await axios.post('/add_bank',{
+                            custid:custid
+                
+                        }).then((result)=>{
+                            console.log("successfully added bank to the list of banks for that customer and removed the customer from pending list of bank");
+                        }).catch(errorr=>{
+                            console.log("could not update db");
+                        });
+                    })
+                   
+                }
+            })
+            .catch(error=>{
+                console.log("could not transact");
+                
+            })
+            
+        
         })
       }
 
@@ -109,7 +139,7 @@ class bank_show_customers extends Component {
                                         <td>{item.email}</td>
                                         <td>{item.ethaddress}</td>
                                        <td><form id={item.ethaddress} onSubmit={this.onFormSubmit}>
-                                         <input type="file" onChange={this.onChange} />
+                                         <input id= {item._id} type="file" onChange={this.onChange} />
                                          <button type="submit">Upload</button>
                                         </form></td> 
                                      
